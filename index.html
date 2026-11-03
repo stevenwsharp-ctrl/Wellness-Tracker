@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wellness Tracker</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d2321;--muted:#6b726f;--line:#e3e1da;--accent:#2f7d62;--soft:#dcefe6;--warn:#c4572e;--strava:#fc4c02;--h0:#ebe9e2;--h1:#c7e4d4;--h2:#8fcaa9;--h3:#4fa37c;--h4:#2f7d62;--mood:#2f7d62;--energy:#c48a1d;--sleep:#4a63b8}
+@media (prefers-color-scheme:dark){:root{--bg:#141716;--card:#1d2120;--ink:#e8ebe9;--muted:#9aa29e;--line:#2d3230;--accent:#5cc196;--soft:#1f3a2e;--h0:#262b29;--h1:#1f4636;--h2:#2b6a4f;--h3:#3f9a72;--h4:#5cc196;--mood:#5cc196;--energy:#e0ad4a;--sleep:#8299e6}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top{max-width:760px;margin:0 auto;padding:12px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top h1{font-size:18px;margin:0;letter-spacing:.2px}
+.sync{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.dot.on{background:var(--strava)}
+nav{max-width:760px;margin:0 auto;padding:8px 16px 0;display:flex;gap:4px;overflow-x:auto}
+nav button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:8px 12px;border-bottom:2px solid transparent;cursor:pointer}
+nav button.on{color:var(--ink);border-color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:16px 16px 80px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.h{font-weight:700;margin-bottom:8px}
+.muted{color:var(--muted)}.small{font-size:12px}
+.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.strava{background:var(--strava);border-color:var(--strava);color:#fff;font-weight:600}
+.btn.ghost{background:none}.btn:disabled{opacity:.35;cursor:default}
+.link{border:0;background:none;color:var(--accent);font:inherit;font-size:12px;padding:0;cursor:pointer;text-decoration:underline}
+.daynav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;text-align:center}
+.daynav .btn{font-size:20px;padding:4px 14px}
+.dlabel{font-weight:700;font-size:17px}
+.score{display:flex;align-items:center;gap:14px}
+.ring{width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring span{width:50px;height:50px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:800;font-size:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 13px;cursor:pointer}
+.chip.on{background:var(--soft);border-color:var(--accent);color:var(--ink);font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+label,.lbl{display:block;font-size:13px;color:var(--muted);font-weight:600}
+input[type=number],input[type=text],input[type=password],textarea,select{display:block;width:100%;margin-top:4px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+textarea{resize:vertical}
+.stepper{display:flex;align-items:center;gap:12px;margin-top:4px}.stepper b{min-width:24px;text-align:center;font-size:18px}
+.scale{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}
+.seg{display:flex;gap:4px}
+.seg button{font:inherit;width:38px;height:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.act{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.act:first-of-type{border-top:0}
+.act .n{font-weight:600}.act .t{font-size:12px;color:var(--muted)}
+.act .s{text-align:right;font-size:13px;white-space:nowrap}
+.goal{margin:10px 0}
+.goal .row{display:flex;justify-content:space-between;font-size:14px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:4px;position:relative}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5}
+.tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px}
+.tag.ok{background:var(--soft);color:var(--accent)}.tag.no{background:rgba(196,87,46,.14);color:var(--warn)}
+.chart{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:8px}
+.chart div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--muted)}
+.chart b{display:block;width:100%;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px}
+.chart .cur{color:var(--ink);font-weight:700}
+.heat{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px}
+.heat .col{display:flex;flex-direction:column;gap:3px}
+.heat button{width:16px;height:16px;border-radius:3px;border:0;padding:0;cursor:pointer}
+.heat .x{visibility:hidden}
+.legend{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);margin-top:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+@media (max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats b{display:block;font-size:24px}.stats span{font-size:12px;color:var(--muted)}
+.spark{width:100%;height:48px;display:block}
+.commit{border-left:4px solid var(--accent);font-style:italic}
+.hrow{display:flex;gap:8px;margin:6px 0}.hrow input{margin-top:0}
+.steps{margin:6px 0 10px;padding-left:20px;font-size:14px}
+.row-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+#toast.show{opacity:1}
+code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><h1>Wellness Tracker</h1><div class="sync" id="sync"></div></div>
+  <nav id="tabs">
+    <button data-tab="today">Day</button><button data-tab="week">Week</button><button data-tab="crew">Crew</button><button data-tab="history">History</button><button data-tab="settings">Settings</button>
+  </nav>
+</header>
+<main id="app"></main>
+<div id="toast"></div>
+<input type="file" id="importFile" accept="application/json" hidden>
+<script>
+const KEY='wellness.v1';
+const DEF={crew:{},crewClub:'',crewSeq:0,crewSync:0,clubs:[],settings:{units:'mi',commitment:'',clientId:'',clientSecret:'',clubId:'',goals:{minutes:150,activities:4,distance:15,checkins:6,sleep:7.5,water:8}},
+  habits:[{id:'h1',name:'Yoga / mobility'},{id:'h2',name:'Meditate'},{id:'h3',name:'Stretch'},{id:'h4',name:'No alcohol'},{id:'h5',name:'Outside 20 min'}],
+  days:{},acts:{},strava:null,lastSync:0};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function merge(r){const d=clone(DEF);const s=r.settings||{};return{...d,...r,settings:{...d.settings,...s,goals:{...d.settings.goals,...(s.goals||{})}}}}
+function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r)return merge(r)}catch(e){}return clone(DEF)}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Could not save. Browser storage is blocked.')}}
+
+/* ---------- dates ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const keyOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const fromKey=k=>{const[y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(k,n)=>{const d=fromKey(k);d.setDate(d.getDate()+n);return keyOf(d)};
+const today=()=>keyOf(new Date());
+const weekStart=k=>{const d=fromKey(k);d.setDate(d.getDate()-((d.getDay()+6)%7));return keyOf(d)};
+const DOW=['M','T','W','T','F','S','S'];
+
+/* ---------- helpers ---------- */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const mi=()=>S.settings.units==='mi';
+const dconv=m=>m/(mi()?1609.344:1000);
+const fmtDist=m=>m?dconv(m).toFixed(1)+' '+(mi()?'mi':'km'):'';
+const fmtElev=m=>m?Math.round(mi()?m*3.281:m)+(mi()?' ft':' m'):'';
+const fmtDur=s=>{const h=Math.floor(s/3600),m=Math.round(s%3600/60);return h?`${h}h ${m}m`:`${m}m`};
+let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),3200)}
+const blank=()=>({h:{},weight:null,sleep:null,water:0,mood:0,energy:0,stress:0,notes:''});
+/* Weight is stored in lb. It shows in lb or kg from the Units setting. */
+const wUnit=()=>mi()?'lb':'kg';
+const wShow=lb=>lb==null?null:(mi()?lb:lb/2.20462);
+const wStore=v=>mi()?v:v*2.20462;
+const wFmt=lb=>lb==null?'–':wShow(lb).toFixed(1);
+function lastWeight(before){let best=null;for(const[k,d]of Object.entries(S.days))if(d.weight&&k<before&&(!best||k>best[0]))best=[k,d.weight];return best}
+function avgWeight(days){const v=days.map(k=>(S.days[k]||{}).weight).filter(Boolean);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+const getDay=k=>({...blank(),...(S.days[k]||{}),h:{...((S.days[k]||{}).h||{})}});
+function setDay(k,fn){const d=getDay(k);fn(d);S.days[k]=d;save()}
+function hasLog(k){const d=S.days[k];if(!d)return false;return Object.values(d.h||{}).some(Boolean)||d.weight||d.sleep||d.water||d.mood||d.energy||d.stress||(d.notes||'').trim()}
+function actsByDay(){const m={};for(const a of Object.values(S.acts))(m[a.day]=m[a.day]||[]).push(a);return m}
+const mins=(k,abd)=>(abd[k]||[]).reduce((s,a)=>s+a.moving,0)/60;
+function score(k,abd){const d=S.days[k]||{},g=S.settings.goals;
+  const hs=S.habits.length?S.habits.filter(h=>d.h&&d.h[h.id]).length/S.habits.length:0;
+  return Math.round(hs*50+Math.min(mins(k,abd)/30,1)*30+((d.sleep||0)>=g.sleep?10:0)+((d.water||0)>=g.water?10:0))}
+function streak(test){let k=today();if(!test(k))k=addDays(k,-1);let n=0;while(test(k)){n++;k=addDays(k,-1)}return n}
+function bestStreak(test,abd){const ks=[...Object.keys(S.days),...Object.keys(abd)].sort();if(!ks.length)return 0;let k=ks[0],b=0,c=0;const end=today();while(k<=end){if(test(k)){c++;b=Math.max(b,c)}else c=0;k=addDays(k,1)}return b}
+
+/* ---------- Strava ---------- */
+const redirect=()=>location.origin+location.pathname;
+function connect(){
+  if(location.protocol==='file:'){toast('Open this page from a web server (GitHub Pages or localhost), not as a file.');return}
+  if(!S.settings.clientId.trim()||!S.settings.clientSecret.trim()){toast('Add the Client ID and Client Secret first.');return}
+  location.href='https://www.strava.com/oauth/authorize?'+new URLSearchParams({client_id:S.settings.clientId.trim(),redirect_uri:redirect(),response_type:'code',approval_prompt:'auto',scope:'read,activity:read_all'});
+}
+async function tokenReq(body){
+  const r=await fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({client_id:S.settings.clientId.trim(),client_secret:S.settings.clientSecret.trim(),...body})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.message||('HTTP '+r.status));return j;
+}
+async function handleCallback(){
+  const p=new URLSearchParams(location.search);
+  if(!p.has('code')&&!p.has('error'))return;
+  history.replaceState(null,'',redirect());
+  if(p.get('error')){toast('Strava access was not given.');return}
+  if(!(p.get('scope')||'').includes('activity:read')){toast('Tick the box to let the app read your activities, then connect again.');return}
+  try{const t=await tokenReq({grant_type:'authorization_code',code:p.get('code')});
+    S.strava={access:t.access_token,refresh:t.refresh_token,exp:t.expires_at,athlete:t.athlete?`${t.athlete.firstname||''} ${t.athlete.lastname||''}`.trim():''};
+    S.lastSync=0;save();toast('Strava is connected.');await sync();
+  }catch(e){toast('Connect failed: '+e.message)}
+}
+async function accessToken(){
+  if(Date.now()/1000>S.strava.exp-120){const t=await tokenReq({grant_type:'refresh_token',refresh_token:S.strava.refresh});
+    Object.assign(S.strava,{access:t.access_token,refresh:t.refresh_token,exp:t.expires_at});save()}
+  return S.strava.access;
+}
+let syncing=false;
+async function sync(manual){
+  if(!S.strava||syncing)return;syncing=true;renderSync();
+  try{const tk=await accessToken();
+    const after=S.lastSync?S.lastSync-3*86400:Math.floor(Date.now()/1000)-180*86400;
+    let page=1,n=0;
+    while(page<=10){
+      const r=await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=100&page=${page}`,{headers:{Authorization:'Bearer '+tk}});
+      if(r.status===401)throw new Error('Strava access expired. Disconnect and connect again.');
+      if(r.status===429)throw new Error('Strava rate limit. Try again in 15 minutes.');
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const arr=await r.json();
+      for(const a of arr){S.acts[a.id]={id:a.id,name:a.name,type:a.sport_type||a.type,day:a.start_date_local.slice(0,10),time:a.start_date_local.slice(11,16),
+        moving:a.moving_time||0,dist:a.distance||0,elev:a.total_elevation_gain||0,hr:a.average_heartrate||null};n++}
+      if(arr.length<100)break;page++;
+    }
+    S.lastSync=Math.floor(Date.now()/1000);save();if(manual||n)toast(`Sync done. ${n} activities checked.`);
+  }catch(e){toast('Sync failed: '+e.message)}
+  syncing=false;render();
+  if(S.settings.clubId&&Date.now()-S.crewSync>15*60000)syncCrew();
+}
+/* ---------- Crew (Strava club) ---------- */
+async function api(path){
+  const tk=await accessToken();
+  const r=await fetch('https://www.strava.com/api/v3'+path,{headers:{Authorization:'Bearer '+tk}});
+  if(r.status===401)throw new Error('Strava access expired. Disconnect and connect again.');
+  if(r.status===429)throw new Error('Strava rate limit. Try again in 15 minutes.');
+  if(r.status===403||r.status===404)throw new Error('No access. You must be a member of this club.');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
+async function loadClubs(){
+  try{S.clubs=(await api('/athlete/clubs?per_page=100')).map(c=>({id:String(c.id),name:c.name,members:c.member_count}));save();
+    toast(S.clubs.length?`Found ${S.clubs.length} clubs.`:'You are not in a Strava club yet.')}
+  catch(e){toast('Could not load clubs: '+e.message)}
+  render();
+}
+/* Strava club activities have no date and no ID. The tracker keys each one by its content and
+   records the time it first sees it. Sync often for good weekly totals. */
+const crewSig=a=>[a.athlete&&a.athlete.firstname,a.athlete&&a.athlete.lastname,a.name,a.sport_type||a.type,Math.round(a.distance||0),a.moving_time||0].join('|');
+let crewSyncing=false;
+async function syncCrew(manual){
+  const id=S.settings.clubId;if(!S.strava||!id||crewSyncing)return;
+  crewSyncing=true;if(tab==='crew')render();
+  try{
+    if(S.crewClub!==id){S.crew={};S.crewClub=id;S.crewSync=0}
+    const first=!S.crewSync,now=Date.now();let all=[];
+    for(let page=1;page<=2;page++){const arr=await api(`/clubs/${encodeURIComponent(id)}/activities?per_page=100&page=${page}`);all=all.concat(arr);if(arr.length<100)break}
+    let added=0;
+    for(const a of all.reverse()){const k=crewSig(a);if(S.crew[k])continue;
+      S.crew[k]={who:`${a.athlete&&a.athlete.firstname||''} ${a.athlete&&a.athlete.lastname||''}`.trim()||'Member',name:a.name,type:a.sport_type||a.type,
+        dist:a.distance||0,moving:a.moving_time||0,elev:a.total_elevation_gain||0,seen:first?0:now,seq:++S.crewSeq};added++}
+    const keys=Object.keys(S.crew);
+    if(keys.length>1500)keys.sort((x,y)=>S.crew[x].seq-S.crew[y].seq).slice(0,keys.length-1500).forEach(k=>delete S.crew[k]);
+    S.crewSync=now;save();if(manual)toast(first?'Crew loaded. New activities count from now on.':`Crew sync done. ${added} new.`);
+  }catch(e){toast('Crew sync failed: '+e.message)}
+  crewSyncing=false;render();
+}
+function disconnect(){
+  if(!confirm('Disconnect Strava? Synced activities stay in this tracker.'))return;
+  const tk=S.strava&&S.strava.access;S.strava=null;save();render();
+  if(tk)fetch('https://www.strava.com/oauth/deauthorize',{method:'POST',headers:{Authorization:'Bearer '+tk}}).catch(()=>{});
+}
+
+/* ---------- views ---------- */
+let cur=today(),tab='today';
+function actRow(a){return `<div class="act"><div><div class="n">${esc(a.name)}</div><div class="t">${esc(a.type)} · ${esc(a.day===cur?a.time:a.day+' '+a.time)}</div></div>
+  <div class="s"><b>${fmtDur(a.moving)}</b><br><span class="muted">${[fmtDist(a.dist),fmtElev(a.elev),a.hr?Math.round(a.hr)+' bpm':''].filter(Boolean).join(' · ')}</span></div></div>`}
+
+function vToday(abd){
+  const d=getDay(cur),g=S.settings.goals,acts=(abd[cur]||[]).slice().sort((a,b)=>a.time<b.time?-1:1),sc=score(cur,abd);
+  const label=fromKey(cur).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  return `<div class="daynav"><button class="btn ghost" data-a="prev" aria-label="Previous day">‹</button>
+    <div><div class="dlabel">${label}</div>${cur===today()?'<div class="muted small">Today</div>':'<button class="link" data-a="gotoday">Go to today</button>'}</div>
+    <button class="btn ghost" data-a="next" aria-label="Next day" ${cur>=today()?'disabled':''}>›</button></div>
+  ${S.settings.commitment?`<div class="card commit">${esc(S.settings.commitment)}</div>`:''}
+  <div class="card score"><div class="ring" style="--p:${sc}"><span>${sc}</span></div><div><div class="h" style="margin:0">Day score</div>
+    <div class="muted small">Habits 50 · Movement 30 (30 min) · Sleep 10 · Water 10</div></div></div>
+  <div class="card"><div class="h">Habits</div><div class="chips">${S.habits.map(h=>`<button class="chip ${d.h[h.id]?'on':''}" data-a="habit" data-id="${h.id}">${d.h[h.id]?'✓ ':''}${esc(h.name)}</button>`).join('')||'<span class="muted">Add habits in Settings.</span>'}</div></div>
+  ${(()=>{const prev=lastWeight(cur),gw=S.settings.weightGoal;
+    const ch=d.weight&&prev?wShow(d.weight)-wShow(prev[1]):null;
+    const toGoal=d.weight&&gw?wShow(d.weight)-wShow(gw):null;
+    return `<div class="card grid2"><label>Morning weight (${wUnit()})<input type="number" step="0.1" min="0" data-f="weight" value="${d.weight?wShow(d.weight).toFixed(1):''}" placeholder="${prev?wFmt(prev[1]):''}"></label>
+    <div class="small muted" style="align-self:end">${prev?`Last: <b>${wFmt(prev[1])}</b> ${wUnit()} (${prev[0]})`:'No earlier weigh-in.'}
+      ${ch!=null?`<br>Change: <b>${ch>0?'+':''}${ch.toFixed(1)}</b> ${wUnit()}`:''}
+      ${toGoal!=null?`<br>To goal: <b>${Math.abs(toGoal).toFixed(1)}</b> ${wUnit()} ${toGoal>0?'to lose':toGoal<0?'to gain':'(at goal)'}`:''}</div></div>`})()}
+  <div class="card grid2">
+    <label>Sleep (hours) <span class="muted">goal ${g.sleep}</span><input type="number" step="0.25" min="0" max="16" data-f="sleep" value="${d.sleep??''}"></label>
+    <div><div class="lbl">Water (glasses) <span class="muted">goal ${g.water}</span></div>
+      <div class="stepper"><button class="btn ghost" data-a="water" data-d="-1">−</button><b>${d.water||0}</b><button class="btn ghost" data-a="water" data-d="1">+</button></div></div>
+  </div>
+  <div class="card">${[['mood','1 low · 5 high'],['energy','1 low · 5 high'],['stress','1 calm · 5 high']].map(([f,hint])=>`<div class="scale"><div class="lbl">${cap(f)}<div class="small muted" style="font-weight:400">${hint}</div></div>
+    <div class="seg">${[1,2,3,4,5].map(n=>`<button class="${d[f]===n?'on':''}" data-a="scale" data-f="${f}" data-v="${n}">${n}</button>`).join('')}</div></div>`).join('')}</div>
+  <div class="card"><div class="h">Strava activities</div>${acts.length?acts.map(actRow).join(''):`<div class="muted">${S.strava?'No activities on this day.':'Connect Strava in Settings to add your activities.'}</div>`}</div>
+  <div class="card"><label>Notes<textarea data-f="notes" rows="3" placeholder="What went well? What got in the way?">${esc(d.notes)}</textarea></label></div>`;
+}
+
+function wstats(days,abd){
+  let m=0,count=0,dist=0,checkins=0,hd=0,ht=0,sl=0,sn=0;const per=[],t=today();
+  for(const k of days){const a=abd[k]||[],mm=mins(k,abd);per.push(mm);m+=mm;count+=a.length;dist+=a.reduce((s,x)=>s+x.dist,0);
+    if(hasLog(k))checkins++;
+    if(k<=t){ht+=S.habits.length;const d=S.days[k];if(d){hd+=S.habits.filter(h=>d.h&&d.h[h.id]).length;if(d.sleep){sl+=+d.sleep;sn++}}}}
+  return{mins:Math.round(m),count,dist,checkins,habitPct:ht?Math.round(hd/ht*100):0,sleep:sn?sl/sn:0,per};
+}
+function vWeek(abd){
+  const ws=weekStart(cur),days=[...Array(7)].map((_,i)=>addDays(ws,i)),g=S.settings.goals,t=today();
+  const st=wstats(days,abd),pv=wstats(days.map(k=>addDays(k,-7)),abd);
+  const elapsed=Math.min(7,Math.max(0,days.filter(k=>k<=t).length)),pace=elapsed/7,isCur=days.includes(t);
+  const goals=[['Active minutes',st.mins,g.minutes,'min'],['Activities',st.count,g.activities,''],['Distance',+dconv(st.dist).toFixed(1),g.distance,mi()?'mi':'km'],['Check-in days',st.checkins,g.checkins,'days']];
+  let met=0;
+  const rows=goals.map(([n,v,goal,u])=>{const p=goal?Math.min(100,v/goal*100):0,done=v>=goal,ok=done||(isCur&&v>=goal*pace);if(done)met++;
+    const tag=done?'<span class="tag ok">Done</span>':isCur?(ok?'<span class="tag ok">On pace</span>':'<span class="tag no">Behind</span>'):'<span class="tag no">Missed</span>';
+    return `<div class="goal"><div class="row"><span>${n} ${tag}</span><span><b>${v}</b> / ${goal} ${u}</span></div><div class="bar"><i style="width:${p}%"></i>${isCur&&!done?`<u style="left:${pace*100}%"></u>`:''}</div></div>`}).join('');
+  const sleepOk=st.sleep>=g.sleep;if(sleepOk)met++;
+  const mx=Math.max(30,...st.per),delta=st.mins-pv.mins;
+  const lbl=fromKey(ws).toLocaleDateString(undefined,{month:'short',day:'numeric'})+' – '+fromKey(days[6]).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  return `<div class="daynav"><button class="btn ghost" data-a="prevw" aria-label="Previous week">‹</button>
+    <div><div class="dlabel">${lbl}</div>${isCur?'<div class="muted small">This week</div>':'<button class="link" data-a="gotoday">Go to this week</button>'}</div>
+    <button class="btn ghost" data-a="nextw" aria-label="Next week" ${days[6]>=t?'disabled':''}>›</button></div>
+  ${S.settings.commitment?`<div class="card commit">${esc(S.settings.commitment)}</div>`:''}
+  <div class="card"><div class="h">Goals — ${met} of 5 met</div>${rows}
+    <div class="goal"><div class="row"><span>Average sleep ${st.sleep?(sleepOk?'<span class="tag ok">Met</span>':'<span class="tag no">Below</span>'):''}</span><span><b>${st.sleep?st.sleep.toFixed(1):'–'}</b> / ${g.sleep} h</span></div></div>
+    ${(()=>{const a=avgWeight(days),p=avgWeight(days.map(k=>addDays(k,-7)));
+      return `<div class="goal"><div class="row"><span>Average weight</span><span><b>${wFmt(a)}</b> ${wUnit()}${a&&p?` (${wShow(a)-wShow(p)>0?'+':''}${(wShow(a)-wShow(p)).toFixed(1)} vs. last week)`:''}${S.settings.weightGoal?` · goal ${wFmt(S.settings.weightGoal)}`:''}</span></div></div>`})()}
+    <div class="goal"><div class="row"><span>Habits done</span><span><b>${st.habitPct}%</b></span></div><div class="bar"><i style="width:${st.habitPct}%"></i></div></div>
+    <div class="muted small">${isCur?'The line on a bar shows where you must be today to stay on pace. ':''}Active minutes vs. last week: <b>${delta>=0?'+':''}${delta}</b></div></div>
+  <div class="card"><div class="h">Active minutes by day</div><div class="chart">${st.per.map((m,i)=>`<div class="${days[i]===t?'cur':''}"><span>${m?Math.round(m):''}</span><b style="height:${m/mx*85}%"></b>${DOW[i]}</div>`).join('')}</div></div>`;
+}
+
+function vCrew(){
+  if(!S.strava)return `<div class="card"><div class="h">Crew</div><p class="muted">Connect Strava in Settings first.</p></div>`;
+  if(!S.settings.clubId)return `<div class="card"><div class="h">Set up your crew</div><ol class="steps">
+    <li>On Strava, make a club (it can be private). Invite your friends to join it.</li>
+    <li>In Settings, push <b>Load my clubs</b> and pick the club.</li>
+    <li>Your friends' activities then show here, with a weekly leaderboard.</li></ol>
+    <p class="small muted">Each friend uses Strava as normal. They do not need this tracker.</p></div>`;
+  const club=(S.clubs.find(c=>c.id===S.settings.clubId)||{}).name||'Club '+S.settings.clubId;
+  const wsMs=fromKey(weekStart(today())).getTime(),goal=S.settings.goals.minutes;
+  const items=Object.values(S.crew),by={};
+  for(const x of items){if(x.seen<wsMs)continue;const p=by[x.who]=by[x.who]||{who:x.who,mins:0,count:0,dist:0};p.mins+=x.moving/60;p.count++;p.dist+=x.dist}
+  const board=Object.values(by).sort((a,b)=>b.mins-a.mins),mx=Math.max(goal,...board.map(p=>p.mins),1);
+  const feed=items.slice().sort((a,b)=>b.seq-a.seq).slice(0,40);
+  const when=x=>x.seen?new Date(x.seen).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):'Before tracking';
+  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div class="h" style="margin:0">${esc(club)}</div>
+    <div class="muted small">Last crew sync: ${S.crewSync?new Date(S.crewSync).toLocaleString():'never'}</div></div>
+    <button class="btn strava" data-a="crewsync" ${crewSyncing?'disabled':''}>${crewSyncing?'Syncing…':'Sync'}</button></div></div>
+  <div class="card"><div class="h">This week — active minutes</div>
+    ${board.length?board.map((p,i)=>`<div class="goal"><div class="row"><span>${i+1}. ${esc(p.who)} ${p.mins>=goal?'<span class="tag ok">Goal met</span>':''}</span>
+      <span><b>${Math.round(p.mins)}</b> min · ${p.count} act · ${fmtDist(p.dist)||'0'}</span></div>
+      <div class="bar"><i style="width:${p.mins/mx*100}%"></i><u style="left:${goal/mx*100}%"></u></div></div>`).join('')
+    :'<p class="muted">No new crew activities this week yet.</p>'}
+    <p class="small muted">The line shows your weekly goal (${goal} min). Strava does not give dates for club activities, so the tracker counts each one on the day it first sees it.</p></div>
+  <div class="card"><div class="h">Crew feed</div>${feed.length?feed.map(x=>`<div class="act"><div><div class="n">${esc(x.who)}</div>
+    <div class="t">${esc(x.name)} · ${esc(x.type)} · ${when(x)}</div></div>
+    <div class="s"><b>${fmtDur(x.moving)}</b><br><span class="muted">${[fmtDist(x.dist),fmtElev(x.elev)].filter(Boolean).join(' · ')}</span></div></div>`).join('')
+    :'<p class="muted">Push Sync to load the club feed.</p>'}</div>`;
+}
+
+function spark(vals,max,color,min=0){
+  const w=300,h=48,n=vals.length;let p='';
+  vals.forEach((v,i)=>{if(v==null||v===0)return;const x=(i*(w/(n-1))).toFixed(1),y=(h-4-((v-min)/(max-min||1))*(h-8)).toFixed(1);
+    const prev=vals[i-1];p+=(i&&prev?'L':'M')+x+' '+y+' ';if(!(i&&prev)&&!vals[i+1])p+='l0.1 0 ';});
+  return `<svg viewBox="0 0 ${w} ${h}" class="spark" preserveAspectRatio="none"><path d="${p}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function vHistory(abd){
+  const t=today(),start=addDays(weekStart(t),-7*15);let cols='';
+  for(let w=0;w<16;w++){cols+='<div class="col">';for(let i=0;i<7;i++){const k=addDays(start,w*7+i);
+    if(k>t){cols+='<button class="x"></button>';continue}
+    const sc=score(k,abd),lv=!hasLog(k)&&!mins(k,abd)?0:sc<25?1:sc<50?2:sc<75?3:4;
+    cols+=`<button style="background:var(--h${lv})" title="${k}: score ${sc}" data-a="goto" data-k="${k}"></button>`}cols+='</div>'}
+  const last=[...Array(30)].map((_,i)=>addDays(t,i-29));
+  const series=f=>last.map(k=>(S.days[k]||{})[f]||null);
+  const logT=k=>!!hasLog(k),actT=k=>mins(k,abd)>0;
+  const recent=Object.values(S.acts).sort((a,b)=>(b.day+b.time).localeCompare(a.day+a.time)).slice(0,20);
+  return `<div class="card"><div class="stats">
+    <div><b>${streak(logT)}</b><span>Check-in streak</span></div><div><b>${bestStreak(logT,abd)}</b><span>Best check-in streak</span></div>
+    <div><b>${streak(actT)}</b><span>Active-day streak</span></div><div><b>${bestStreak(actT,abd)}</b><span>Best active streak</span></div></div></div>
+  <div class="card"><div class="h">Last 16 weeks</div><div class="heat">${cols}</div>
+    <div class="legend">Less <i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i> More · Push a day to open it</div></div>
+  ${(()=>{const wv=[...Array(90)].map((_,i)=>wShow((S.days[addDays(t,i-89)]||{}).weight||null)),have=wv.filter(Boolean);
+    if(!have.length)return `<div class="card"><div class="h">Weight</div><p class="muted">Enter your morning weight on the Day page to see your trend.</p></div>`;
+    const g=S.settings.weightGoal?wShow(S.settings.weightGoal):null,all=g?[...have,g]:have;
+    const lo=Math.min(...all)-1,hi=Math.max(...all)+1,first=have[0],latest=have[have.length-1];
+    const avg7=avgWeight(last.slice(-7));
+    return `<div class="card"><div class="h">Weight — last 90 days</div>${spark(wv,hi,'var(--accent)',lo)}
+    <div class="stats" style="margin-top:8px"><div><b>${latest.toFixed(1)}</b><span>Latest (${wUnit()})</span></div>
+      <div><b>${avg7?wShow(avg7).toFixed(1):'–'}</b><span>7-day average</span></div>
+      <div><b>${latest-first>0?'+':''}${(latest-first).toFixed(1)}</b><span>90-day change</span></div>
+      <div><b>${g?Math.abs(latest-g).toFixed(1):'–'}</b><span>${g?'To goal':'No goal set'}</span></div></div></div>`})()}
+  <div class="card"><div class="h">Last 30 days</div>
+    <div class="lbl" style="color:var(--mood)">Mood</div>${spark(series('mood'),5,'var(--mood)')}
+    <div class="lbl" style="color:var(--energy)">Energy</div>${spark(series('energy'),5,'var(--energy)')}
+    <div class="lbl" style="color:var(--sleep)">Sleep (0–12 h)</div>${spark(series('sleep'),12,'var(--sleep)')}</div>
+  <div class="card"><div class="h">Recent Strava activities</div>${recent.length?recent.map(actRow).join(''):'<div class="muted">No activities yet.</div>'}</div>`;
+}
+
+function vSettings(){
+  const s=S.settings,g=s.goals,host=location.hostname||'localhost';
+  const gi=(k,l,step)=>`<label>${l}<input type="number" min="0" step="${step||1}" data-s="goals.${k}" value="${g[k]}"></label>`;
+  return `<div class="card"><div class="h">Strava</div>
+    ${S.strava?`<p>Connected${S.strava.athlete?' as <b>'+esc(S.strava.athlete)+'</b>':''}. Last sync: ${S.lastSync?new Date(S.lastSync*1000).toLocaleString():'never'}.</p>
+      <div class="row-btns"><button class="btn strava" data-a="sync" ${syncing?'disabled':''}>${syncing?'Syncing…':'Sync now'}</button><button class="btn" data-a="disconnect">Disconnect</button></div>`
+    :`<ol class="steps"><li>Go to <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a> and create an app.</li>
+      <li>Set <b>Authorization Callback Domain</b> to <code>${esc(host)}</code>.</li>
+      <li>Copy the Client ID and Client Secret into the fields below.</li><li>Push <b>Connect Strava</b>.</li></ol>
+      <div class="grid2"><label>Client ID<input type="text" data-s="clientId" value="${esc(s.clientId)}" autocomplete="off"></label>
+      <label>Client Secret<input type="password" data-s="clientSecret" value="${esc(s.clientSecret)}" autocomplete="off"></label></div>
+      <p class="small muted">The secret stays in this browser only. Backups do not include it.</p>
+      <div class="row-btns"><button class="btn strava" data-a="connect">Connect Strava</button></div>`}</div>
+  <div class="card"><div class="h">Crew (Strava club)</div>
+    <p class="small muted">Make a club on Strava and invite your friends. The Crew page shows their activities and a weekly leaderboard.</p>
+    ${S.strava?`<div class="row-btns" style="margin:0 0 10px"><button class="btn" data-a="loadclubs">Load my clubs</button></div>
+      ${S.clubs.length?`<label>Club<select data-s="clubId"><option value="">None</option>${S.clubs.map(c=>`<option value="${esc(c.id)}" ${c.id===s.clubId?'selected':''}>${esc(c.name)} (${c.members})</option>`).join('')}</select></label>`:''}`
+    :'<p class="muted">Connect Strava first.</p>'}</div>
+  <div class="card"><div class="h">Weekly goals</div><div class="grid2">
+    ${gi('minutes','Active minutes')}${gi('activities','Activities')}${gi('distance','Distance ('+(mi()?'mi':'km')+')',0.5)}${gi('checkins','Check-in days')}
+    ${gi('sleep','Sleep per night (h)',0.25)}${gi('water','Water per day (glasses)')}
+    <label>Goal weight (${wUnit()})<input type="number" min="0" step="0.5" data-s="weightGoal" value="${s.weightGoal?wShow(s.weightGoal).toFixed(1):''}" placeholder="Optional"></label></div>
+    <label style="margin-top:10px">Units<select data-s="units"><option value="mi" ${mi()?'selected':''}>Miles / feet / lb</option><option value="km" ${mi()?'':'selected'}>Kilometers / meters / kg</option></select></label></div>
+  <div class="card"><div class="h">My commitment</div><label>Write one sentence. It shows at the top of the Day and Week pages.
+    <textarea rows="2" data-s="commitment" placeholder="I move every day and check in before bed.">${esc(s.commitment)}</textarea></label></div>
+  <div class="card"><div class="h">Daily habits</div>
+    ${S.habits.map(h=>`<div class="hrow"><input type="text" data-hab="${h.id}" value="${esc(h.name)}"><button class="btn" data-a="delhab" data-id="${h.id}" aria-label="Remove">✕</button></div>`).join('')}
+    <div class="hrow"><input type="text" id="newHab" placeholder="New habit"><button class="btn pri" data-a="addhab">Add</button></div></div>
+  <div class="card"><div class="h">Data</div><p class="small muted">All data stays in this browser. Make a backup often.</p>
+    <div class="row-btns"><button class="btn" data-a="export">Export backup</button><button class="btn" data-a="import">Import backup</button><button class="btn" data-a="reset" style="color:var(--warn)">Delete all data</button></div></div>`;
+}
+
+/* ---------- render ---------- */
+function renderSync(){
+  const e=document.getElementById('sync');
+  e.innerHTML=S.strava?`<span class="dot on"></span>${syncing?'Syncing…':'Strava'}`:'<span class="dot"></span>Strava off';
+}
+function render(){
+  const abd=actsByDay();
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  document.getElementById('app').innerHTML=tab==='today'?vToday(abd):tab==='week'?vWeek(abd):tab==='history'?vHistory(abd):tab==='crew'?vCrew():vSettings();
+  renderSync();
+}
+
+/* ---------- events ---------- */
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){tab=b.dataset.tab;render();scrollTo(0,0)}});
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,t=today();
+  if(a==='prev')cur=addDays(cur,-1);
+  else if(a==='next'){cur=addDays(cur,1);if(cur>t)cur=t}
+  else if(a==='prevw')cur=addDays(cur,-7);
+  else if(a==='nextw'){cur=addDays(cur,7);if(cur>t)cur=t}
+  else if(a==='gotoday')cur=t;
+  else if(a==='goto'){cur=b.dataset.k;tab='today'}
+  else if(a==='habit')setDay(cur,d=>{d.h[b.dataset.id]=!d.h[b.dataset.id]});
+  else if(a==='water')setDay(cur,d=>{d.water=Math.max(0,(d.water||0)+ +b.dataset.d)});
+  else if(a==='scale')setDay(cur,d=>{const v=+b.dataset.v;d[b.dataset.f]=d[b.dataset.f]===v?0:v});
+  else if(a==='connect')return connect();
+  else if(a==='sync')return sync(true);
+  else if(a==='disconnect')return disconnect();
+  else if(a==='loadclubs')return loadClubs();
+  else if(a==='crewsync')return syncCrew(true);
+  else if(a==='addhab'){const i=document.getElementById('newHab'),n=i.value.trim();if(!n)return;S.habits.push({id:'h'+Date.now().toString(36),name:n});save()}
+  else if(a==='delhab'){if(!confirm('Remove this habit?'))return;S.habits=S.habits.filter(h=>h.id!==b.dataset.id);save()}
+  else if(a==='export')return exportData();
+  else if(a==='import')return document.getElementById('importFile').click();
+  else if(a==='reset'){if(!confirm('Delete all tracker data in this browser? This cannot be undone.'))return;S=clone(DEF);save()}
+  render();
+});
+document.getElementById('app').addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.f==='notes')setDay(cur,d=>{d.notes=el.value});
+  else if(el.dataset.s==='commitment'||el.dataset.s==='clientId'||el.dataset.s==='clientSecret'){S.settings[el.dataset.s]=el.value;save()}
+  else if(el.dataset.hab){const h=S.habits.find(x=>x.id===el.dataset.hab);if(h){h.name=el.value;save()}}
+});
+document.getElementById('app').addEventListener('change',e=>{
+  const el=e.target;
+  if(el.dataset.f==='weight'){setDay(cur,d=>{d.weight=el.value===''||+el.value<=0?null:+wStore(+el.value).toFixed(2)});render()}
+  else if(el.dataset.s==='weightGoal'){S.settings.weightGoal=el.value===''||+el.value<=0?null:+wStore(+el.value).toFixed(2);save();render()}
+  else if(el.dataset.f==='sleep'){setDay(cur,d=>{d.sleep=el.value===''?null:Math.max(0,+el.value)});render()}
+  else if(el.dataset.s&&el.dataset.s.startsWith('goals.')){S.settings.goals[el.dataset.s.slice(6)]=Math.max(0,+el.value||0);save();render()}
+  else if(el.dataset.s==='units'){S.settings.units=el.value;save();render()}
+  else if(el.dataset.s==='clubId'){S.settings.clubId=el.value;save();render();if(el.value)syncCrew(true)}
+});
+document.getElementById('app').addEventListener('keydown',e=>{if(e.target.id==='newHab'&&e.key==='Enter')document.querySelector('[data-a=addhab]').click()});
+
+function exportData(){
+  const out=clone(S);delete out.strava;out.settings.clientSecret='';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,1)],{type:'application/json'}));
+  a.download=`wellness-backup-${today()}.json`;document.body.appendChild(a);a.click();a.remove();
+}
+document.getElementById('importFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const r=JSON.parse(await f.text());if(!r.days)throw 0;
+    const keep={strava:S.strava,secret:S.settings.clientSecret};S=merge(r);S.strava=keep.strava;if(!S.settings.clientSecret)S.settings.clientSecret=keep.secret;
+    save();toast('Backup imported.');render();
+  }catch(err){toast('This file is not a valid backup.')}
+  e.target.value='';
+});
+
+/* ---------- start ---------- */
+render();
+handleCallback().then(()=>{if(S.strava&&Date.now()/1000-S.lastSync>1800)sync()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(cur>today())cur=today();if(S.strava&&Date.now()/1000-S.lastSync>1800)sync()}});
+</script>
+</body>
+</html>
