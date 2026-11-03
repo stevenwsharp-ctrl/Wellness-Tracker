@@ -121,7 +121,7 @@ const dconv=m=>m/(mi()?1609.344:1000);
 const fmtDist=m=>m?dconv(m).toFixed(1)+' '+(mi()?'mi':'km'):'';
 const fmtElev=m=>m?Math.round(mi()?m*3.281:m)+(mi()?' ft':' m'):'';
 const fmtDur=s=>{const h=Math.floor(s/3600),m=Math.round(s%3600/60);return h?`${h}h ${m}m`:`${m}m`};
-let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),3200)}
+let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),/fail|error|not /i.test(t)?12000:3200);if(/fail/i.test(t)){try{localStorage.setItem('wellness.lastError',new Date().toLocaleString()+' — '+t)}catch(x){}}}
 const blank=()=>({h:{},weight:null,sleep:null,water:0,mood:0,energy:0,stress:0,notes:''});
 /* Weight is stored in lb. It shows in lb or kg from the Units setting. */
 const wUnit=()=>mi()?'lb':'kg';
@@ -151,7 +151,7 @@ function connect(){
 async function tokenReq(body){
   const r=await fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body:new URLSearchParams({client_id:S.settings.clientId.trim(),client_secret:S.settings.clientSecret.trim(),...body})});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.message||('HTTP '+r.status));return j;
+  const j=await r.json().catch(()=>({}));if(!r.ok){const det=(j.errors||[]).map(e=>`${e.field} ${e.code}`).join(', ');throw new Error((j.message||('HTTP '+r.status))+(det?` (${det})`:''))}return j;
 }
 async function handleCallback(){
   const p=new URLSearchParams(location.search);
@@ -376,7 +376,7 @@ function vSettings(){
       <li>Copy the Client ID and Client Secret into the fields below.</li><li>Push <b>Connect Strava</b>.</li></ol>
       <div class="grid2"><label>Client ID<input type="text" data-s="clientId" value="${esc(s.clientId)}" autocomplete="off"></label>
       <label>Client Secret<input type="password" data-s="clientSecret" value="${esc(s.clientSecret)}" autocomplete="off"></label></div>
-      <p class="small muted">The secret stays in this browser only. Backups do not include it.</p>
+      <p class="small muted">The secret stays in this browser only. Backups do not include it.</p>${(()=>{let e='';try{e=localStorage.getItem('wellness.lastError')||''}catch(x){}return e?`<p class="small" style="color:var(--warn)">Last error: ${esc(e)}</p>`:''})()}
       <div class="row-btns"><button class="btn strava" data-a="connect">Connect Strava</button></div>`}</div>
   <div class="card"><div class="h">Crew (Strava club)</div>
     <p class="small muted">Make a club on Strava and invite your friends. The Crew page shows their activities and a weekly leaderboard.</p>
